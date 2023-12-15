@@ -1,5 +1,9 @@
 use std::fs::read_to_string;
 
+fn numbers_from_string(text: &str) -> Vec<u32> {
+    text.split_ascii_whitespace().map(|number| number.parse::<u32>().expect("Number larger than u32 max")).collect()
+}
+
 #[derive(Debug)]
 struct Remap {
     destination_start: u32,
@@ -10,12 +14,12 @@ struct Remap {
 
 impl Remap {
     fn from_string(text: &str) -> Remap {
-        let mut numbers: Vec<&str> = text.split_whitespace().collect();
+        let mut numbers = numbers_from_string(text);
         assert!(numbers.len() == 3, "Invalid string input for creating Remap");
 
-        let destination_start = numbers.get(0).unwrap().parse::<u32>().unwrap();
-        let source_start = numbers.get(1).unwrap().parse::<u32>().unwrap();
-        let range = numbers.get(2).unwrap().parse::<u32>().unwrap();
+        let range = numbers.pop().unwrap();
+        let source_start = numbers.pop().unwrap();
+        let destination_start = numbers.pop().unwrap();
         let offset: i64 = destination_start as i64 - source_start as i64;
 
         Remap {destination_start, source_start, range, offset}
@@ -57,6 +61,8 @@ impl Remapper {
     }
 }
 
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,7 +85,7 @@ mod tests {
     #[test]
     fn parse_input() {
         let data = read_to_string("data/test_input").unwrap();
-
+        const SEEDS_HEADER: &str = "seeds:";
     }
 
     #[test]
