@@ -1,15 +1,15 @@
 use std::fs::read_to_string;
 
-fn numbers_from_string(text: &str) -> Vec<u32> {
-    text.split_ascii_whitespace().map(|number| number.parse::<u32>().expect("Number larger than u32 max")).collect()
+fn numbers_from_string(text: &str) -> Vec<u64> {
+    text.split_ascii_whitespace().map(|number| number.parse::<u64>().expect("Number larger than u32 max")).collect()
 }
 
 #[derive(Debug)]
 struct Remap {
-    destination_start: u32,
-    source_start: u32,
-    range: u32,
-    offset: i64     // calculated at creation time to simplify further calculation
+    destination_start: u64,
+    source_start: u64,
+    range: u64,
+    offset: i128     // calculated at creation time to simplify further calculationx
 }
 
 impl Remap {
@@ -20,7 +20,7 @@ impl Remap {
         let range = numbers.pop().unwrap();
         let source_start = numbers.pop().unwrap();
         let destination_start = numbers.pop().unwrap();
-        let offset: i64 = destination_start as i64 - source_start as i64;
+        let offset: i128 = destination_start as i128 - source_start as i128;
 
         Remap {destination_start, source_start, range, offset}
     }   
@@ -36,10 +36,10 @@ impl Remapper {
         Remapper {remaps: vec![]}
     }
 
-    fn remap(&self, value: u32) -> u32 {
+    fn remap(&self, value: u64) -> u64 {
         for mapping in &self.remaps {
             if value >= mapping.source_start && value < mapping.source_start + mapping.range {
-                let new_value = value as i64 + mapping.offset;
+                let new_value = value as i128 + mapping.offset;
                 return new_value.try_into().expect("value of out range");
             }
             // If there are no more ranges that could match
@@ -80,12 +80,6 @@ mod tests {
 
         assert_eq!(test_remapper.remap(98), 50);
         assert_eq!(test_remapper.remap(50), 52);
-    }
-
-    #[test]
-    fn parse_input() {
-        let data = read_to_string("data/test_input").unwrap();
-        const SEEDS_HEADER: &str = "seeds:";
     }
 
     #[test]
@@ -142,5 +136,32 @@ mod tests {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let data = read_to_string("data/input.txt").unwrap();
+    const SEEDS_HEADER: &str = "seeds:";
+
+    // Get our seeds
+    let first_line = data.lines().next().unwrap();
+    let seeds = numbers_from_string(&first_line[SEEDS_HEADER.len()..]);
+
+    // Build our routing table
+    let mut routing_table: Vec<Remapper> = Vec::new();
+    for line in data.lines().skip(2) {
+        let first_char = line.chars().next().unwrap_or('\n');
+        if first_char.is_numeric() {
+            if let Some(remapper) = routing_table.last_mut() {
+                remapper.sorted_insert(Remap::from_string(line));
+            }
+        }
+        else if first_char == '\n' {}   // ignore
+        else {
+            println!("Now building the remapper for: {}", line);
+            routing_table.push(Remapper::new());
+        }
+    }
+
+    let locations: Vec<u64> = seeds.iter().map(|seed| routing_table.iter().fold(*seed, |cur_val, remapper| remapper.remap(cur_val))).collect();
+
+    println!("Results are (as expected): {:?}", locations);
+    println!("Lowest location number is: {}", locations.iter().min().unwrap());
+
 }
