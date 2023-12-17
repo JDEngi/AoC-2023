@@ -136,6 +136,8 @@ mod tests {
 }
 
 fn main() {
+    
+
     let data = read_to_string("data/input.txt").unwrap();
     const SEEDS_HEADER: &str = "seeds:";
 
@@ -143,6 +145,7 @@ fn main() {
     let first_line = data.lines().next().unwrap();
     let seeds = numbers_from_string(&first_line[SEEDS_HEADER.len()..]);
 
+    let timer = std::time::Instant::now();
     // Build our routing table
     let mut routing_table: Vec<Remapper> = Vec::new();
     for line in data.lines().skip(2) {
@@ -158,8 +161,12 @@ fn main() {
             routing_table.push(Remapper::new());
         }
     }
+    println!("router parsing: {:.2?}", timer.elapsed());
 
+    let processing_timer = std::time::Instant::now();
     let locations: Vec<u64> = seeds.iter().map(|seed| routing_table.iter().fold(*seed, |cur_val, remapper| remapper.remap(cur_val))).collect();
+
+    println!("Mapping pargins: {:.2?}", processing_timer.elapsed());
 
     println!("Results are (as expected): {:?}", locations);
     println!("Lowest location number is: {}", locations.iter().min().unwrap());
