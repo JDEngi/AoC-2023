@@ -125,10 +125,10 @@ mod tests {
             temperature_to_humidity, 
             humidity_to_location
         ];
-        let seeds: Vec<u32> = vec![79, 14, 55, 13];
-        let expected: Vec<u32> = vec![82, 43, 86, 35];
+        let seeds: Vec<u64> = vec![79, 14, 55, 13];
+        let expected: Vec<u64> = vec![82, 43, 86, 35];
 
-        let result: Vec<u32> = seeds.iter().map(|seed| routing_table.iter().fold(*seed, |cur_val, remapper| remapper.remap(cur_val))).collect();
+        let result: Vec<u64> = seeds.iter().map(|seed| routing_table.iter().fold(*seed, |cur_val, remapper| remapper.remap(cur_val))).collect();
 
         assert_eq!(expected, result);
 
